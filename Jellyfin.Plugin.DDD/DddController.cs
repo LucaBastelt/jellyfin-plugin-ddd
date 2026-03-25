@@ -66,44 +66,63 @@ public class DddController(
     {
         var httpClient = GetHttpClient();
         var item = libraryManager.GetItemById(itemId);
-        var imdbId = item.GetProviderId(MediaBrowser.Model.Entities.MetadataProvider.Imdb);
 
-        int? index1 = null;
-        int? index2 = null;
-
-        if (item is Episode episode)
+        if (item is not (Video or Season or Series))
         {
-            index2 = episode.IndexNumber;
-            index1 = episode.Season.IndexNumber;
-            imdbId = episode.Series.GetProviderId(MediaBrowser.Model.Entities.MetadataProvider.Imdb);
-        }
-        else if (item is Season season)
-        {
-            index1 = season.IndexNumber;
-            imdbId = season.Series.GetProviderId(MediaBrowser.Model.Entities.MetadataProvider.Imdb);
+            return null;
         }
 
-        if (item is Video or Season or Series)
+        var (imdbId, index1, index2) = GetIdsForItem(item);
+
+        var dddRes = await SearchDddItemByImdbId(imdbId, httpClient, cancellationToken).ConfigureAwait(false);
+        var id = dddRes?.Items?.FirstOrDefault()?.Id;
+        if (id == null)
         {
-            var dddRes = await SearchDddItemByImdbId(imdbId, httpClient, cancellationToken).ConfigureAwait(false);
-            var id = dddRes?.Items?.FirstOrDefault()?.Id;
-            if (id == null)
-            {
-                return null;
-            }
-
-            var indexParamString = GetEpisodeIndexParameter(index1, index2);
-
-            return $"{DoesTheDogDieJellyfinIntegrationPlugin.Instance!.Configuration.DddApiUrl}media/{id}?{indexParamString}";
+            return null;
         }
 
-        return null;
+        var indexParamString = GetEpisodeIndexParameter(index1, index2);
+
+        return $"{DoesTheDogDieJellyfinIntegrationPlugin.Instance!.Configuration.DddApiUrl}media/{id}?{indexParamString}";
     }
 
     private async Task<IEnumerable<DddTopicItemStats>?> GetDddData(Guid itemId, CancellationToken cancellationToken)
     {
         var httpClient = GetHttpClient();
         var item = libraryManager.GetItemById(itemId);
+
+        if (item is not (Video or Season or Series))
+        {
+            return null;
+        }
+
+        var (imdbId, index1, index2) = GetIdsForItem(item);
+
+        logger.LogInformation("imdb: {0}", imdbId);
+
+        var dddRes = await SearchDddItemByImdbId(imdbId, httpClient, cancellationToken).ConfigureAwait(false);
+
+        var dddId = dddRes?.Items.FirstOrDefault();
+        logger.LogInformation("dddId: {0}", dddId?.Id);
+
+        if (dddId == null)
+        {
+            return null;
+        }
+
+        var sorted = await LoadDddItemTopics(cancellationToken, index1, index2, dddId, httpClient);
+
+        foreach (var topic in sorted)
+        {
+            logger.LogInformation("ddd: {0}, ({1}, {2}, \"{3}\")", topic.Topic.Name, topic.YesSum, topic.NoSum, topic.Topic.Supporters);
+        }
+
+        return sorted;
+
+    }
+
+    private static (string? imdbId, int? index1, int? index2) GetIdsForItem(BaseItem item)
+    {
         var imdbId = item.GetProviderId(MediaBrowser.Model.Entities.MetadataProvider.Imdb);
 
         int? index1 = null;
@@ -121,29 +140,7 @@ public class DddController(
             imdbId = season.Series.GetProviderId(MediaBrowser.Model.Entities.MetadataProvider.Imdb);
         }
 
-        if (item is Video or Season or Series)
-        {
-            logger.LogInformation("imdb: {0}", imdbId);
-
-            var dddRes = await SearchDddItemByImdbId(imdbId, httpClient, cancellationToken).ConfigureAwait(false);
-
-            var dddId = dddRes?.Items.FirstOrDefault();
-            logger.LogInformation("dddId: {0}", dddId?.Id);
-
-            if (dddId != null)
-            {
-                var sorted = await LoadDddItemTopics(cancellationToken, index1, index2, dddId, httpClient);
-
-                foreach (var topic in sorted)
-                {
-                    logger.LogInformation("ddd: {0}, ({1}, {2}, \"{3}\")", topic.Topic.Name, topic.YesSum, topic.NoSum, topic.Topic.Supporters);
-                }
-
-                return sorted;
-            }
-        }
-
-        return null;
+        return (imdbId, index1, index2);
     }
 
     private HttpClient GetHttpClient()

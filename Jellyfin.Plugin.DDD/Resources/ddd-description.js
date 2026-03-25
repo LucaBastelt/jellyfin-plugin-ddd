@@ -1,16 +1,24 @@
-﻿addEventListener("hashchange", (event) => {
+﻿addEventListeners();
+addCssRules();
+checkDddUpdateNeeded();
 
-    console.log("The hash has changed!");
-    checkDddUpdateNeeded();
-})
-navigation.addEventListener("navigate", e => {
-    console.log("The URL has changed!");
-    checkDddUpdateNeeded();
-});
-window.addEventListener('popstate', function (event) {
-    console.log("NavState has changed!");
-    checkDddUpdateNeeded();
-});
+
+function addEventListeners() {
+    addEventListener("hashchange", (event) => {
+
+        console.log("The hash has changed!");
+        checkDddUpdateNeeded();
+    })
+    navigation.addEventListener("navigate", e => {
+        console.log("The URL has changed!");
+        checkDddUpdateNeeded();
+    });
+    window.addEventListener('popstate', function (event) {
+        console.log("NavState has changed!");
+        checkDddUpdateNeeded();
+    });
+}
+
 function checkDddUpdateNeeded(){
     var path = location.hash.split('?');
     var queryParams = (path[1] ?? "").split('&');
@@ -62,14 +70,36 @@ function loadDddUrl(id){
 function patchDescription(content) {
     var element = document.querySelector('.itemTags');
     var p = document.createElement('p');
+    p.classList.add('ddd-container')
     element.parentElement.insertBefore(p, element);
 
     p.innerHTML = "<b>Content Warnings: </b>";
 
     for (const e of content) {
-        p.innerHTML += '<span title="' + e.Comment + '">' + e.Name + '</span>, ';
+        p.innerHTML += `<span class="ddd-element${e.Comment ? "ddd-has-comment" : ""}" title="${e.Comment}">${e.Name}</span>, `;
     }
     p.innerHTML = p.innerHTML.slice(0, p.innerHTML.length - 2);
 }
 
-checkDddUpdateNeeded();
+function addCssRules(){
+    var styles = `
+        .ddd-container{
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .ddd-element.ddd-has-comment::after{
+            content: "?";
+            font-size: 0.7rem;
+            vertical-align: super;
+        }
+        .ddd-element.ddd-has-comment:hover{
+            cursor: help;
+            text-decoration: underline;
+        }
+    `
+
+    var styleSheet = document.createElement("style")
+    styleSheet.textContent = styles
+    document.head.appendChild(styleSheet)
+}
