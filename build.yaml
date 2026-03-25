@@ -1,0 +1,16 @@
+---
+name: "DoesTheDogDie Jellyfin Integration"
+guid: "c84eb73f-949b-45c4-aa0a-294b94030aed"
+version: "0.0.1.0"
+targetAbi: "10.9.0.0"
+framework: "net9.0"
+overview: "TODO"
+description: >
+  TODO
+  TODO2
+category: "General"
+owner: "Luca Nixdorf"
+artifacts:
+  - "Jellyfin.Plugin.DDD.dll"
+changelog: >
+  changelog

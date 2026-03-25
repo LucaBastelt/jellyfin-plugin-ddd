@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DoesTheDogDie Jellyfin Integration</title>
+</head>
+<body>
+    <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="TemplateConfigForm">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DddApiKey">DDD API Key</label>
+                        <input id="DddApiKey" name="DddApiKey" type="text" is="emby-input" />
+                        <div class="fieldDescription">The DoesTheDogDie API Key, obtained from the DDD Profile page.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DddApiURL">DDD API URL</label>
+                        <input id="DddApiURL" name="DddApiURL" type="text" is="emby-input" />
+                        <div class="fieldDescription">The DoesTheDogDie API URL.</div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var TemplateConfig = {
+                pluginUniqueId: 'c84eb73f-949b-45c4-aa0a-294b94030aed'
+            };
+
+            document.querySelector('#TemplateConfigPage')
+                .addEventListener('pageshow', function() {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        document.querySelector('#DddApiKey').value = config.DddApiKey;
+                        document.querySelector('#DddApiURL').value = config.DddApiUrl;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+            document.querySelector('#TemplateConfigForm')
+                .addEventListener('submit', function(e) {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                    config.DddApiKey = document.querySelector('#DddApiKey').value;
+                    config.DddApiUrl = document.querySelector('#DddApiURL').value;
+                    ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+
+                e.preventDefault();
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
