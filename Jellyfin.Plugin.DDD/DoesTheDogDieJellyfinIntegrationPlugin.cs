@@ -131,12 +131,12 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
             // JS Injector's singleton is not ready yet — retry after all plugins have initialised.
             if (_retryCount >= MaxRetries)
             {
-                _logger.LogWarning("[JellyFlare] JS Injector not ready after {MaxRetries} retries — banner script will not be injected.", MaxRetries);
+                _logger.LogWarning("[DDD] JS Injector not ready after {MaxRetries} retries — banner script will not be injected.", MaxRetries);
                 return;
             }
 
             _retryCount++;
-            _logger.LogInformation("[JellyFlare] JS Injector not ready yet, retrying in 5 s (attempt {Attempt}/{MaxRetries})...", _retryCount, MaxRetries);
+            _logger.LogInformation("[DDD] JS Injector not ready yet, retrying in 5 s (attempt {Attempt}/{MaxRetries})...", _retryCount, MaxRetries);
             _ = Task.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(5));
