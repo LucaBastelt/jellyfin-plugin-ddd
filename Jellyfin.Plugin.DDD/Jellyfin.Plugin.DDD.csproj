@@ -29,7 +29,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
     <None Remove="Resources\ddd-description.js" />
-    <EmbeddedResource Include="Resources\ddd-description.js" />
   </ItemGroup>
   
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Debug'">

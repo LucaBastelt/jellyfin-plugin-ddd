@@ -16,6 +16,9 @@ public class DddPluginConfiguration : BasePluginConfiguration
         // set default options here
         DddApiKey = "API-Key";
         DddApiUrl = "https://www.doesthedogdie.com";
+        BatchRequestAmount = 100;
+        NewMediaRefreshForDays = 14;
+        BatchesPerDay = 2;
     }
 
     /// <summary>
@@ -24,4 +27,10 @@ public class DddPluginConfiguration : BasePluginConfiguration
     public string DddApiKey { get; set; }
 
     public string DddApiUrl { get; set; }
+
+    public int BatchRequestAmount { get; set; }
+
+    public int BatchesPerDay { get; set; }
+
+    public int NewMediaRefreshForDays { get; set; }
 }

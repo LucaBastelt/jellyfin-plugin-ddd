@@ -19,6 +19,21 @@
                         <input id="DddApiURL" name="DddApiURL" type="text" is="emby-input" />
                         <div class="fieldDescription">The DoesTheDogDie API URL.</div>
                     </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="BatchRequestAmount">An Integer</label>
+                        <input id="BatchRequestAmount" name="BatchRequestAmount" type="number" is="emby-input" min="1" />
+                        <div class="fieldDescription">How many requests to do in one batch, to now overwhelm the DDD api</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="NewMediaRefreshForDays">An Integer</label>
+                        <input id="NewMediaRefreshForDays" name="NewMediaRefreshForDays" type="number" is="emby-input" min="1" />
+                        <div class="fieldDescription">For how many days should new media be updated. Should be until a somewhat stable state has been reached.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="BatchesPerDay">An Integer</label>
+                        <input id="BatchesPerDay" name="BatchesPerDay" type="number" is="emby-input" min="1" />
+                        <div class="fieldDescription">How many batches to process per day.</div>
+                    </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                             <span>Save</span>
@@ -38,6 +53,9 @@
                     ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
                         document.querySelector('#DddApiKey').value = config.DddApiKey;
                         document.querySelector('#DddApiURL').value = config.DddApiUrl;
+                        document.querySelector('#BatchRequestAmount').value = config.BatchRequestAmount;
+                        document.querySelector('#NewMediaRefreshForDays').value = config.NewMediaRefreshForDays;
+                        document.querySelector('#BatchesPerDay').value = config.BatchesPerDay;
                         Dashboard.hideLoadingMsg();
                     });
                 });
@@ -48,6 +66,9 @@
                 ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
                     config.DddApiKey = document.querySelector('#DddApiKey').value;
                     config.DddApiUrl = document.querySelector('#DddApiURL').value;
+                    config.BatchRequestAmount = document.querySelector('#BatchRequestAmount').value;
+                    config.NewMediaRefreshForDays = document.querySelector('#NewMediaRefreshForDays').value;
+                    config.BatchesPerDay = document.querySelector('#BatchesPerDay').value;
                     ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
