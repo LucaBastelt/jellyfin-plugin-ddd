@@ -1,39 +1,20 @@
-﻿addEventListeners();
+﻿setupOnViewShow();
 addCssRules();
 checkDddUpdateNeeded();
 
+function checkDddUpdateNeeded() {
+    var path = location.hash.split("?");
+    var queryParams = (path[1] ?? "").split("&");
 
-function addEventListeners() {
-    addEventListener("hashchange", (event) => {
+    var id = queryParams.find((q) => q.startsWith("id="))?.replace("id=", "");
 
-        console.log("The hash has changed!");
-        checkDddUpdateNeeded();
-    })
-    navigation.addEventListener("navigate", e => {
-        console.log("The URL has changed!");
-        checkDddUpdateNeeded();
-    });
-    window.addEventListener('popstate', function (event) {
-        console.log("NavState has changed!");
-        checkDddUpdateNeeded();
-    });
-}
-
-function checkDddUpdateNeeded(){
-    var path = location.hash.split('?');
-    var queryParams = (path[1] ?? "").split('&');
-    console.log(path);
-
-    var id = queryParams.find(q => q.startsWith('id='))?.replace('id=', '');
-
-    if (path[0] === '#/details' && id) {
+    if (path[0] === "#/details" && id) {
         var request = new XMLHttpRequest();
         request.open("POST", "/plugin/ddd/" + id);
 
-        request.addEventListener('load', function (event) {
+        request.addEventListener("load", function (event) {
             if (request.status >= 200 && request.status < 300) {
                 var responseJson = JSON.parse(request.responseText);
-                console.log(responseJson);
                 patchDescription(responseJson);
 
                 loadDddUrl(id);
@@ -42,46 +23,47 @@ function checkDddUpdateNeeded(){
             }
         });
 
-        request.send()
+        request.send();
     }
 }
 
-function loadDddUrl(id){
+function loadDddUrl(id) {
     var request = new XMLHttpRequest();
     request.open("POST", "/plugin/ddd/" + id + "/dddUrl");
 
-    request.addEventListener('load', function (event) {
+    request.addEventListener("load", function (event) {
         if (request.status >= 200 && request.status < 300) {
-
-            var element = document.querySelector('.itemTags');
-            var a = document.createElement('a');
+            var element = document.querySelector(".itemTags");
+            var a = document.createElement("a");
             element.parentElement.insertBefore(a, element);
             a.href = JSON.parse(request.responseText);
             a.innerText = "DoesTheDogDie Website";
-            a.target = '_blank';
+            a.target = "_blank";
         } else {
             console.warn(request.statusText, request.responseText);
         }
     });
 
-    request.send()
+    request.send();
 }
 
 function patchDescription(content) {
-    var element = document.querySelector('.itemTags');
-    var p = document.createElement('p');
-    p.classList.add('ddd-container')
+    document.querySelectorAll(".ddd-container").forEach(e => e.remove());
+
+    var element = document.querySelector(".itemTags:not(.hide .itemTags)");
+    var p = document.createElement("p");
+    p.classList.add("ddd-container");
     element.parentElement.insertBefore(p, element);
 
     p.innerHTML = "<b>Content Warnings: </b>";
 
     for (const e of content) {
-        p.innerHTML += `<span class="ddd-element${e.Comment ? "ddd-has-comment" : ""}" title="${e.Comment}">${e.Name}</span>, `;
+        p.innerHTML += `<span class="ddd-element${e.Comment ? " ddd-has-comment" : ""}" title="${e.Comment}">${e.Name}</span>, `;
     }
     p.innerHTML = p.innerHTML.slice(0, p.innerHTML.length - 2);
 }
 
-function addCssRules(){
+function addCssRules() {
     var styles = `
         .ddd-container{
             margin-top: 0;
@@ -97,9 +79,34 @@ function addCssRules(){
             cursor: help;
             text-decoration: underline;
         }
-    `
+    `;
 
-    var styleSheet = document.createElement("style")
-    styleSheet.textContent = styles
-    document.head.appendChild(styleSheet)
+    var styleSheet = document.createElement("style");
+    styleSheet.textContent = styles;
+    document.head.appendChild(styleSheet);
+}
+
+// Hook into Emby.Page.onViewShow
+function setupOnViewShow() {
+    const originalOnViewShow = window.Emby?.Page?.onViewShow;
+
+    if (window.Emby && window.Emby.Page) {
+        window.Emby.Page.onViewShow = function (...args) {
+            // Call original handler if it exists
+            if (originalOnViewShow) {
+                try {
+                    originalOnViewShow.apply(this, args);
+                } catch (err) {
+                    console.warn("[DDD] Error in original onViewShow:", err);
+                }
+            }
+
+            checkDddUpdateNeeded();
+        };
+
+        console.log("[DDD] Hooked into Emby.Page.onViewShow");
+    } else {
+        // Retry if Emby.Page not ready yet
+        setTimeout(setupOnViewShow, 100);
+    }
 }

@@ -28,7 +28,7 @@ public class DddController(
 {
     private static readonly JsonSerializerOptions _jsonSettings = new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip, PropertyNameCaseInsensitive = true };
 
-    private MemoryCache _cache = new MemoryCache(new MemoryDistributedCacheOptions() { SizeLimit = null });
+    private static readonly MemoryCache Cache = new(new MemoryDistributedCacheOptions() { SizeLimit = null });
 
     [HttpPost("{itemId}")]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -156,7 +156,7 @@ public class DddController(
     {
 #pragma warning disable CA2254
         logger.LogInformation($"/dddsearch?imdb={imdbId}");
-        return await _cache.GetOrCreateAsync<DddSearchResponse>("search_ddd_imdbid_" + imdbId, async (entry) =>
+        return await Cache.GetOrCreateAsync<DddSearchResponse>("search_ddd_imdbid_" + imdbId, async (entry) =>
             await httpClient.GetFromJsonAsync<DddSearchResponse>(
                 $"/dddsearch?imdb={imdbId}",
                 _jsonSettings,
@@ -169,7 +169,7 @@ public class DddController(
         var indexParamString = GetEpisodeIndexParameter(index1, index2);
         logger.LogInformation($"/media/{dddId.Id}?{indexParamString}");
 
-        return await _cache.GetOrCreateAsync<List<DddTopicItemStats>>("load_ddd_itemid" + dddId.Id, async (entry) =>
+        return await Cache.GetOrCreateAsync<List<DddTopicItemStats>>("load_ddd_itemid" + dddId.Id, async (entry) =>
             {
                 var ddd = await httpClient.GetFromJsonAsync<DddMediaResponse>($"/media/{dddId.Id}?{indexParamString}", cancellationToken).ConfigureAwait(false);
 
