@@ -20,19 +20,19 @@
                         <div class="fieldDescription">The DoesTheDogDie API URL.</div>
                     </div>
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="BatchRequestAmount">An Integer</label>
+                        <label class="inputLabel inputLabelUnfocused" for="BatchesPerDay">Batches Per Day</label>
+                        <input id="BatchesPerDay" name="BatchesPerDay" type="number" is="emby-input" min="1" />
+                        <div class="fieldDescription">How many batches to process per day.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="BatchRequestAmount">Batch Request Amount</label>
                         <input id="BatchRequestAmount" name="BatchRequestAmount" type="number" is="emby-input" min="1" />
                         <div class="fieldDescription">How many requests to do in one batch, to now overwhelm the DDD api</div>
                     </div>
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="NewMediaRefreshForDays">An Integer</label>
+                        <label class="inputLabel inputLabelUnfocused" for="NewMediaRefreshForDays">New Media Refresh For Days</label>
                         <input id="NewMediaRefreshForDays" name="NewMediaRefreshForDays" type="number" is="emby-input" min="1" />
                         <div class="fieldDescription">For how many days should new media be updated. Should be until a somewhat stable state has been reached.</div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="BatchesPerDay">An Integer</label>
-                        <input id="BatchesPerDay" name="BatchesPerDay" type="number" is="emby-input" min="1" />
-                        <div class="fieldDescription">How many batches to process per day.</div>
                     </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">

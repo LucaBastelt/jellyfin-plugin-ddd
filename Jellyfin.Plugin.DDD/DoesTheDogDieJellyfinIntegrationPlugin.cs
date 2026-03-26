@@ -131,7 +131,6 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
             ExcludeItemIds = itemsToIgnore,
             IncludeItemTypes = [BaseItemKind.Movie, BaseItemKind.Series, BaseItemKind.Season, BaseItemKind.Episode],
             Recursive = true,
-            DtoOptions = new DtoOptions(false) { EnableImages = false, Fields = [ItemFields.AirTime, ItemFields.ProviderIds, ItemFields.Overview], },
             OrderBy = [(ItemSortBy.DateCreated, SortOrder.Descending)],
         });
 
@@ -145,11 +144,16 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
                 if (data is not null)
                 {
                     await UpdateItem(cancellationToken, item, url, data).ConfigureAwait(false);
+                    _logger.LogInformation("[DDD] Successfully updated Content Warnings for \"{ItemName}\"", item.Name);
+                }
+                else
+                {
+                    _logger.LogInformation("[DDD] No DDD Entry found for \"{ItemName}\"", item.Name);
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "[DDD] Updating content warnings failed for item {}", item.Id);
+                _logger.LogError(e, "[DDD] Updating Content Warnings failed for item \"{ItemName}\"", item.Name);
             }
 
             UpdateItemState(item);
@@ -189,7 +193,8 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
                                                         (string.IsNullOrWhiteSpace(stat.Comment) ? string.Empty : "<span style=\"font-size: 0.7rem; vertical-align: super;\">?</span>") +
                                                         "</span>";
 
-        item.Overview += $@"<p id=""ddd-container"" style=""margin-top: 0; margin-bottom: 0.5rem;""><a style=""text-decoration: none;"" href=""{url}"" target=""_blank"">
+        item.Overview += $@"<p id=""ddd-container"" style=""margin-top: 0; margin-bottom: 0.5rem;"">
+                            <a style=""text-decoration: none;"" href=""{url}"" target=""_blank"">
                                     <b>Content Warnings:</b><br>"
                          + data.Aggregate(string.Empty, (acc, stats) => acc + MakeTopicSpan(stats) + ", ").TrimEnd(' ', ',')
                          + "</a></p>";
@@ -230,7 +235,7 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
 
         var indexParamString = GetEpisodeIndexParameter(index1, index2);
 
-        return $"{Instance!.Configuration.DddApiUrl}media/{id}?{indexParamString}";
+        return $"{Instance!.Configuration.DddApiUrl.TrimEnd('/')}/media/{id}?{indexParamString}";
     }
 
     private async Task<IEnumerable<DddTopicItemStats>?> GetDddData(BaseItem item, CancellationToken cancellationToken)
@@ -244,12 +249,9 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
 
         var (imdbId, index1, index2) = GetIdsForItem(item);
 
-        _logger.LogInformation("imdb: {0}", imdbId);
-
         var dddRes = await SearchDddItemByImdbId(imdbId, httpClient, cancellationToken).ConfigureAwait(false);
 
         var dddId = dddRes?.Items?.FirstOrDefault();
-        _logger.LogInformation("dddId: {0}", dddId?.Id);
 
         if (dddId == null)
         {
@@ -257,11 +259,6 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
         }
 
         var sorted = await LoadDddItemTopics(cancellationToken, index1, index2, dddId, httpClient);
-
-        foreach (var topic in sorted)
-        {
-            _logger.LogInformation("ddd: {0}, ({1}, {2}, \"{3}\")", topic.Topic.Name, topic.YesSum, topic.NoSum, topic.Topic.Supporters);
-        }
 
         return sorted;
     }
@@ -300,7 +297,6 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
 
     private async Task<DddSearchResponse?> SearchDddItemByImdbId(string? imdbId, HttpClient httpClient, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("/dddsearch?imdb={0}", imdbId);
         return await Cache.GetOrCreateAsync<DddSearchResponse>("search_ddd_imdbid_" + imdbId, async (entry) =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
@@ -312,7 +308,6 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
     private async Task<List<DddTopicItemStats>> LoadDddItemTopics(CancellationToken cancellationToken, int? index1, int? index2, DddSearchResponseItem dddId, HttpClient httpClient)
     {
         var indexParamString = GetEpisodeIndexParameter(index1, index2);
-        _logger.LogInformation("/media/{0}?{1}", dddId.Id, indexParamString);
 
         return await Cache.GetOrCreateAsync<List<DddTopicItemStats>>("load_ddd_itemid" + dddId.Id, async (entry) =>
             {
