@@ -1,18 +1,51 @@
-name: '🏗️ Build Plugin'
+name: "🏗️ Build Plugin"
 
 on:
   push:
     branches:
       - master
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
   pull_request:
     branches:
       - master
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
   workflow_dispatch:
+    inputs:
+      dotnet-version:
+        required: false
+        default: "9.0.x"
+        description: "The .NET version to setup for the build"
+        type: string
+      dotnet-target:
+        required: false
+        default: "net9.0"
+        description: "The .NET target to set for JPRM"
+        type: string
 
 jobs:
-  call:
-    uses: jellyfin/jellyfin-meta-plugins/.github/workflows/build.yaml@master
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        with:
+          dotnet-version: "${{ inputs.dotnet-version }}"
+
+      - name: Build Jellyfin Plugin
+        uses: oddstr13/jellyfin-plugin-repository-manager@9497a0a499416cc572ed2e07a391d9f943a37b4d # v1.1.1
+        id: jprm
+        with:
+          dotnet-target: "${{ inputs.dotnet-target }}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: build-artifact
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ steps.jprm.outputs.artifact }}
