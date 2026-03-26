@@ -100,6 +100,12 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
         _httpClientFactory = httpClientFactory;
         _logger = logger;
 
+        if (!Directory.Exists(DataFolderPath))
+        {
+            logger.LogInformation("[DDD] Creating plugin data directory \"{DataFolderPath}\"", DataFolderPath);
+            Directory.CreateDirectory(DataFolderPath);
+        }
+
         logger.LogInformation("[DDD] Using Cache Folder at {0}", DataFolderPath);
         jsonItemStatePath = Path.Combine(DataFolderPath, ItemStateJsonFileName);
         if (File.Exists(jsonItemStatePath))
@@ -258,7 +264,7 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
             return null;
         }
 
-        var sorted = await LoadDddItemTopics(cancellationToken, index1, index2, dddId, httpClient);
+        var sorted = await LoadDddItemTopics(cancellationToken, index1, index2, dddId, httpClient).ConfigureAwait(false);
 
         return sorted;
     }
@@ -275,11 +281,9 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
             case Episode episode:
                 index2 = episode.IndexNumber;
                 index1 = episode.Season.IndexNumber;
-                imdbId = episode.Series.GetProviderId(MetadataProvider.Imdb);
                 break;
             case Season season:
                 index1 = season.IndexNumber;
-                imdbId = season.Series.GetProviderId(MetadataProvider.Imdb);
                 break;
         }
 
@@ -309,7 +313,7 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
     {
         var indexParamString = GetEpisodeIndexParameter(index1, index2);
 
-        return await Cache.GetOrCreateAsync<List<DddTopicItemStats>>("load_ddd_itemid" + dddId.Id, async (entry) =>
+        return await Cache.GetOrCreateAsync<List<DddTopicItemStats>>("load_ddd_itemid" + dddId.Id + "_" + indexParamString, async (entry) =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
 
