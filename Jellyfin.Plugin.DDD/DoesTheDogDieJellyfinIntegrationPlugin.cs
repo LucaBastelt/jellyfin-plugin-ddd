@@ -196,7 +196,9 @@ public class DoesTheDogDieJellyfinIntegrationPlugin : BasePlugin<DddPluginConfig
 
         string MakeTopicSpan(DddTopicItemStats stat) => $"<span class=\"ddd-element\" title=\"{stat.Comment}\">" +
                                                         $"{stat.Topic.Name}" +
-                                                        (string.IsNullOrWhiteSpace(stat.Comment) ? string.Empty : "<span style=\"font-size: 0.7rem; vertical-align: super;\">?</span>") +
+                                                        (string.IsNullOrWhiteSpace(stat.Comment.Replace("\"", "&quot;", StringComparison.CurrentCulture))
+                                                            ? string.Empty
+                                                            : "<span style=\"font-size: 0.7rem; vertical-align: super;\">?</span>") +
                                                         "</span>";
 
         item.Overview += $@"<p id=""ddd-container"" style=""margin-top: 0; margin-bottom: 0.5rem;"">
