@@ -32,8 +32,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          sed -i "s|<AssemblyVersion>.*</AssemblyVersion>|<AssemblyVersion>${VERSION}</AssemblyVersion>|" Jellyfin.Plugin.DDD/JellyFlare.csproj
-          sed -i "s|<FileVersion>.*</FileVersion>|<FileVersion>${VERSION}</FileVersion>|" Jellyfin.Plugin.DDD/JellyFlare.csproj
+          sed -i "s|<AssemblyVersion>.*</AssemblyVersion>|<AssemblyVersion>${VERSION}</AssemblyVersion>|" Jellyfin.Plugin.DDD/Jellyfin.Plugin.DDD.csproj
+          sed -i "s|<FileVersion>.*</FileVersion>|<FileVersion>${VERSION}</FileVersion>|" Jellyfin.Plugin.DDD/Jellyfin.Plugin.DDD.csproj
 
       - name: Restore
         run: dotnet restore
@@ -115,7 +115,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add manifest.json Jellyfin.Plugin.DDD/JellyFlare.csproj
+          git add manifest.json Jellyfin.Plugin.DDD/Jellyfin.Plugin.DDD.csproj
           git commit -m "chore: update manifest for ${TAG}"
           git push origin main
 
