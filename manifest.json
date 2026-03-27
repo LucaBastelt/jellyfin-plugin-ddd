@@ -2,8 +2,8 @@
     {
         "guid": "c84eb73f-949b-45c4-aa0a-294b94030aed",
         "name": "DoesTheDogDie",
-        "overview": "TODO",
-        "description": "TODO",
+        "overview": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
+        "description": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
         "owner": "Luca Nixdorf",
         "category": "General",
         "imageUrl": "https://play-lh.googleusercontent.com/tVN6k-iBdCcVcKnjTQqXtI7wzaY4tf0WaWpNn_ATD_IJkHrVRaaJfoGo45nJ73n_Gcg",

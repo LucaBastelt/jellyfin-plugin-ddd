@@ -2,50 +2,125 @@ name: "🏗️ Build Plugin"
 
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - "**/*.md"
-  pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - "**/*.md"
+    tags:
+      - v*
   workflow_dispatch:
-    inputs:
-      dotnet-version:
-        required: false
-        default: "9.0.x"
-        description: "The .NET version to setup for the build"
-        type: string
-      dotnet-target:
-        required: false
-        default: "net9.0"
-        description: "The .NET target to set for JPRM"
-        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "${{ inputs.dotnet-version }}"
+          dotnet-version: 9.0.x
 
-      - name: Build Jellyfin Plugin
-        uses: oddstr13/jellyfin-plugin-repository-manager@9497a0a499416cc572ed2e07a391d9f943a37b4d # v1.1.1
-        id: jprm
-        with:
-          dotnet-target: "${{ inputs.dotnet-target }}"
+      - name: Set environment variables
+        run: |
+          VERSION=${{ github.ref_name }}
+          VERSION_NUM=${VERSION#v}
+          echo "VERSION_NUM=${VERSION_NUM}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "TARGET_ABI=$(cat target_abi.txt | tr -d '[:space:]')" >> $GITHUB_ENV
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+      - name: Bump version in csproj
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s|<AssemblyVersion>.*</AssemblyVersion>|<AssemblyVersion>${VERSION}</AssemblyVersion>|" Jellyfin.Plugin.DDD/JellyFlare.csproj
+          sed -i "s|<FileVersion>.*</FileVersion>|<FileVersion>${VERSION}</FileVersion>|" Jellyfin.Plugin.DDD/JellyFlare.csproj
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Package
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}.0"
+          TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%S)"
+
+          mkdir -p dist
+          cp Jellyfin.Plugin.DDD/bin/Release/net9.0/Jellyfin.Plugin.DDD.dll dist/
+          cp icon.png dist/
+
+          jq -n \
+            --arg id        "c84eb73f-949b-45c4-aa0a-294b94030aed" \
+            --arg ver       "$VERSION" \
+            --arg ts        "$TIMESTAMP" \
+            '{
+              Id:                     $id,
+              Name:                   "DoesTheDogDie",
+              AutoUpdateLevel:        "Release",
+              UpdateTreshold:         "Never",
+              UpdateSourceUrl:        "https://raw.githubusercontent.com/LucaBastelt/jellyfin-plugin-ddd/refs/heads/main/manifest.json",
+              Assemblies:             ["Jellyfin.Plugin.DDD.dll"],
+              SignatureValidationLevel: "NoneRequired",
+              Version:                $ver,
+              Timestamp:              $ts,
+              TargetAbi:              "10.11.6.0",
+              Changelog:              "",
+              Disabled:               false,
+              AutoUpdate:             true,
+              HasImage:               true,
+              ImagePath:              "icon.png"
+            }' > dist/meta.json
+
+          zip -j dist/Jellyfin.Plugin.DDD.zip \
+            dist/Jellyfin.Plugin.DDD.dll \
+            dist/meta.json \
+            dist/icon.png
+
+      - name: Update manifest
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}.0"
+          CHECKSUM="$(md5sum dist/Jellyfin.Plugin.DDD.zip | awk '{print toupper($1)}')"
+          TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%S)"
+          SOURCE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/Jellyfin.Plugin.DDD.zip"
+          # Normalise line endings to \r\n inside jq before the value touches the shell.
+          CHANGELOG="$(gh release view "${TAG}" --json body -q '.body | gsub("\r"; "") | gsub("\n"; "\r\n")' 2>/dev/null || true)"
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="See https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+          fi
+
+          git fetch origin main
+          git checkout main
+
+          jq --arg ver "$VERSION" \
+             --arg chk "$CHECKSUM" \
+             --arg ts  "$TIMESTAMP" \
+             --arg url "$SOURCE_URL" \
+             --arg log "$CHANGELOG" \
+             '.[0].versions = ([{
+               version:   $ver,
+               checksum:  $chk,
+               changelog: $log,
+               targetAbi: "10.11.6.0",
+               sourceUrl: $url,
+               timestamp: $ts
+             }] + .[0].versions)' \
+             manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json Jellyfin.Plugin.DDD/JellyFlare.csproj
+          git commit -m "chore: update manifest for ${TAG}"
+          git push origin main
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
         with:
-          name: build-artifact
-          retention-days: 30
-          if-no-files-found: error
-          path: ${{ steps.jprm.outputs.artifact }}
+          files: dist/Jellyfin.Plugin.DDD.zip
