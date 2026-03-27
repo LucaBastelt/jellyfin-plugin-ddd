@@ -1,37 +1,45 @@
 [
-    {
-        "guid": "c84eb73f-949b-45c4-aa0a-294b94030aed",
-        "name": "DoesTheDogDie",
-        "overview": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
-        "description": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
-        "owner": "Luca Nixdorf",
-        "category": "General",
-        "imageUrl": "https://play-lh.googleusercontent.com/tVN6k-iBdCcVcKnjTQqXtI7wzaY4tf0WaWpNn_ATD_IJkHrVRaaJfoGo45nJ73n_Gcg",
-        "versions": [
-            {
-                "changelog": "Initial release",
-                "targetAbi": "10.11.6",
-                "version": "0.0.0.1",
-                "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.1/doesthedogdie-jellyfin-integration_0.0.0.1.zip",
-                "checksum": "4136E9756C0EBE6ACDB45CCB9ABEB1EC",
-                "timestamp": "2026-03-26T08:13:00"
-            },
-            {
-                "changelog": "Switched to backend only implementation",
-                "targetAbi": "10.11.6",
-                "version": "0.0.0.2",
-                "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.2/doesthedogdie_0.0.0.2.zip",
-                "checksum": "4AF0CE3A2E07EED496B00E1F9ACEE56F",
-                "timestamp": "2026-03-26T12:13:00"
-            },
-            {
-                "changelog": "Fixed Images being deleted",
-                "targetAbi": "10.11.6",
-                "version": "0.0.0.3",
-                "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.3/doesthedogdie_0.0.0.3.zip",
-                "checksum": "832AD1E606697730D0199106C184A99F",
-                "timestamp": "2026-03-26T14:13:00"
-            }
-        ]
-    }
+  {
+    "guid": "c84eb73f-949b-45c4-aa0a-294b94030aed",
+    "name": "DoesTheDogDie",
+    "overview": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
+    "description": "Integrates the DoesTheDogDie API into Jellyfin, allowing users to see content warnings for media items based on the presence of certain triggers.",
+    "owner": "Luca Nixdorf",
+    "category": "General",
+    "imageUrl": "https://play-lh.googleusercontent.com/tVN6k-iBdCcVcKnjTQqXtI7wzaY4tf0WaWpNn_ATD_IJkHrVRaaJfoGo45nJ73n_Gcg",
+    "versions": [
+      {
+        "version": "0.0.0.4.0",
+        "checksum": "B0AFC15BEB7BE5A5E44B83045057F7EF",
+        "changelog": "See https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/tag/v0.0.0.4",
+        "targetAbi": "10.11.6.0",
+        "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.4/Jellyfin.Plugin.DDD.zip",
+        "timestamp": "2026-03-27T08:16:34"
+      },
+      {
+        "changelog": "Initial release",
+        "targetAbi": "10.11.6",
+        "version": "0.0.0.1",
+        "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.1/doesthedogdie-jellyfin-integration_0.0.0.1.zip",
+        "checksum": "4136E9756C0EBE6ACDB45CCB9ABEB1EC",
+        "timestamp": "2026-03-26T08:13:00"
+      },
+      {
+        "changelog": "Switched to backend only implementation",
+        "targetAbi": "10.11.6",
+        "version": "0.0.0.2",
+        "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.2/doesthedogdie_0.0.0.2.zip",
+        "checksum": "4AF0CE3A2E07EED496B00E1F9ACEE56F",
+        "timestamp": "2026-03-26T12:13:00"
+      },
+      {
+        "changelog": "Fixed Images being deleted",
+        "targetAbi": "10.11.6",
+        "version": "0.0.0.3",
+        "sourceUrl": "https://github.com/LucaBastelt/jellyfin-plugin-ddd/releases/download/v0.0.0.3/doesthedogdie_0.0.0.3.zip",
+        "checksum": "832AD1E606697730D0199106C184A99F",
+        "timestamp": "2026-03-26T14:13:00"
+      }
+    ]
+  }
 ]
